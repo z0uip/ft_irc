@@ -1,12 +1,12 @@
-NAME		= ircserv
+NAME        = ircserv
 
-CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
+CXX         = c++
+CXXFLAGS    = -Wall -Wextra -Werror -std=c++98 -I inc
 
-SRCS		= main.cpp
-OBJS		= $(SRCS:.cpp=.o)
+SRCS        = src/main.cpp src/Server.cpp
+OBJS        = $(SRCS:.cpp=.o)
 
-RM			= rm -f
+RM          = rm -f
 
 all: $(NAME)
 
