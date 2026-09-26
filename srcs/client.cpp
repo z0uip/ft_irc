@@ -70,3 +70,16 @@ bool client::hasPendingOutput()
 	if (_bufferout.empty())
 		return (true);
 }
+
+std::string client::getOutBuffer()
+{
+	std::string &r = _bufferout;
+	return (r);
+}
+
+void client::consumeOutPut(int n)
+{
+	if (n <= 0)
+		return ;
+	_bufferout.erase(0, n);
+}

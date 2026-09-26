@@ -12,6 +12,8 @@
 #include <string>
 #include <stdexcept>
 #include <cerrno>
+#include <sstream>
+#include <vector>
 
 class client
 {
@@ -35,6 +37,8 @@ class client
 		client(int fd, std::string name, std::string password);
 		void queueMessage(const std::string &msg);
 		bool hasPendingOutput();
+		std::string getOutBuffer();
+		void consumeOutPut(int n);
 };
 
 #endif
