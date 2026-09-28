@@ -1,31 +1,38 @@
 #include "client.hpp"
 #include "parsmessage.hpp"
 
-void parsmessage(std::string message)
+std::vector<std::string> parsmessage(std::string message)
 {
-	std::istringstream mess(message);
 	std::vector<std::string> params;
-	std::string command;
+	bool addlast = false;
 	std::string word;
+	std::string last;
+	size_t pos = message.find(" :");
 
-	if (word[0] == ':')
-		mess >> word;
-	while (mess >> word)
+	if (message.empty())
+		return (params);
+	if (pos != std::string::npos)
 	{
-		if (word.find(":"))
-		{
-			params.push_back(word.substr(0, word.size()));
-			while (mess >> word)
-				params.back().append(word + " ");
-			return ;
-		}
-		else
-		{
-			for (size_t i = 0; i < word.size(); ++i)
-				word[i] = std::toupper(static_cast<unsigned char>(word[i]));
-			
-		}
+		last = message.substr(pos + 2);
+		message = message.substr(0, pos);
+		addlast = true;
 	}
+	std::istringstream mess(message);
+	if (!(mess >> word))
+		return (params);
+	if (word[0] == ':')
+	{
+		if (!(mess >> word))
+			return (params);
+	}
+	for (size_t i = 0; i < word.size(); ++i)
+		word[i] = std::toupper(static_cast<unsigned char>(word[i]));
+	params.push_back(word);
+	while (mess >> word)
+		params.push_back(word);
+	if (addlast)
+		params.push_back(last);
+	return (params);
 }
 
 

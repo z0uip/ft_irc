@@ -68,7 +68,8 @@ void client::queueMessage(const std::string &msg)
 bool client::hasPendingOutput()
 {
 	if (_bufferout.empty())
-		return (true);
+		return (false);
+	return (true);
 }
 
 std::string client::getOutBuffer()

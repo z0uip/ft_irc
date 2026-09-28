@@ -1,5 +1,5 @@
-#ifndef SOCKET_HPP
-#define SOckET_HPP
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <sys/socket.h>
 #include <netinet/in.h>
