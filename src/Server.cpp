@@ -6,11 +6,12 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/09/24 22:13:15 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/09/29 01:28:26 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Server.hpp"
+#include "../inc/client.hpp"
 #include <sys/socket.h>
 #include <stdexcept>
 #include <netinet/in.h>//sockadrr_in/htons
@@ -60,13 +61,36 @@ void Server::run()
 			{
 				if (_pollFds[i].fd == _servFd)
 				{
-					std::cout << "New connexion !" << "\n";
-					//rajouter accept() j'espere que tu auras reussi a cop Dieudonne et la nvl vitrine
+					int clientFd = accept(_servFd, NULL, NULL);//sert a recup une connexion entrante et creer un nv socket pr la communication avec
+					if (clientFd == -1)
+						std::cerr << "Connexion error from accept()" << "\n";//pas de throw, on veut pas que le serveur entier plante si 1 prsn narrive pas a se co
+					_clients.insert(std::make_pair(clientFd, client(clientFd, "", "")));//insert cette pair ds std::map
+					fcntl(clientFd, F_SETFL, O_NONBLOCK);
+					struct pollfd clientpollfd;
+					clientpollfd.fd = clientFd;
+					clientpollfd.events = POLLIN;
+					clientpollfd.revents = 0;
+					_pollFds.push_back(clientpollfd);
+					std::cout << "New connexion : " << clientFd << "\n";
 				}
 				else
 				{
+					char buf[1024];
+					ssize_t res = recv(_pollFds[i].fd, buf, sizeof(buf), 0);//lis les donnees dispo sur le socket _pollFds et les mets dans buf sans depasser sa limite
+					if (res > 0)
+					{
+						std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);//it pointe vers le client correspondant au FD qui vient de recevoir des données avc recv
+						if (it != _clients.end())//si find() a trouver le client
+							it->second.add_byte(buf, res);//ajoute les données reçues au buffer d'entrée du client correspondant pour reconstituer une cmd complete
+					}
+					else if (res == 0)//si le client a fermer sa connexion
+					{
+						close(_pollFds[i].fd);
+						_pollFds.erase(_pollFds.begin() + i);//supp le fd du vecteur
+					}
+					else if (res == -1)
+						std::cerr << "Recv error" << "\n";
 					std::cout << "Msg from a client !" << "\n";
-
 				}
 			}
 		}
