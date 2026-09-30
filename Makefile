@@ -3,7 +3,7 @@ NAME        = ircserv
 CXX         = c++
 CXXFLAGS    = -Wall -Wextra -Werror -std=c++98 -I inc
 
-SRCS        = src/main.cpp src/Server.cpp
+SRCS        = src/main.cpp src/Server.cpp src/client.cpp
 OBJS        = $(SRCS:.cpp=.o)
 
 RM          = rm -f

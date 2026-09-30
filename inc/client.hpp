@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 17:36:52 by abensaid          #+#    #+#             */
-/*   Updated: 2026/09/29 00:27:20 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/09/30 17:26:06 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,26 +31,27 @@ class client
 {
 	private :
 		int _fd;
+		bool _pass_ok;
+		std::string _ip;
 		bool _prfl_saved;
-		bool _prfl_valid;
+		std::string _nickname;
+		std::string _username;
 		std::string _bufferin;
 		std::string _bufferout;
-		std::string _password;
-		std::string _name;
 	public :
-		std::string get_password();
-		std::string get_name();
-		void modifie_password(const std::string password);
-		void modifie_name(const std::string name);
-		void add_byte(const char *data, size_t len);
-		std::string extract_line();
-		bool is_valid();
-		bool is_saved();
-		client(int fd, std::string name, std::string password);
-		void queueMessage(const std::string &msg);
-		bool hasPendingOutput();
-		std::string getOutBuffer();
+		bool is_saved() const;
+		bool is_pass_ok() const;
+		bool hasPendingOutput() const;
 		void consumeOutPut(int n);
+		std::string get_username() const;
+		std::string get_nickname() const;
+		const std::string &getOutBuffer() const;
+		bool extract_line(std::string &line);
+		client(int fd, const std::string &ip);
+		void queueMessage(const std::string &msg);
+		void modifie_username(const std::string name);
+		void modifie_nickname(const std::string name);
+		void add_byte(const char *data, size_t len);
 };
 
 #endif
