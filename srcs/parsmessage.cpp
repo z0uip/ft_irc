@@ -36,29 +36,38 @@ std::vector<std::string> parsmessage(std::string message)
 }
 
 
-int dispatcher(std::string word)
+void dispatcher(client &clt, const std::vector<std::string> &params)
 {
-	if (word == "PASS")
-		/*envoyer vers fonction PASS*/;
-	else if (word == "NICK")
-		/*traiter en fonction*/;
-	else if (word == "USER")
-		/*traiter en fonction*/;
-	else if (word == "JOIN")
-		/*traiter en fonction*/;
-	else if (word == "PRIVMSG")
-		/*traiter en fonction*/;
-	else if (word == "KICK")
-		/*traiter en fonction*/;
-	else if (word == "INVITE")
-		/*traiter en fonction*/;
-	else if (word == "TOPIC")
-		/*traiter en fonction*/;
-	else if (word == "MODE")
-		/*traiter en fonction*/;
-	else if (word == "QUIT")
-		/*traiter en fonction*/;
-	else
-		return (0);
-	return (1);
+	if (params.empty())
+	{
+		if (params[0] == "PASS")
+			/*envoyer vers fonction PASS*/;
+		else if (params[0] == "NICK")
+			/*traiter en fonction*/;
+		else if (params[0] == "USER")
+			/*traiter en fonction*/;
+		else if (params[0] == "CAP")
+			/*traiter en fonction*/;
+		else if (params[0] == "PING")
+			/*traiter en foncion*/;
+		else if (params[0] == "QUIT")
+			/*traiter en fonction*/;
+		else if (!clt.is_saved())
+			sendNumeric(clt, "451", "", "You have not registered");
+		else if (params[0] == "PRIVMSG")
+			/*traiter en fonction*/;
+		else if (params[0] == "JOIN")
+			/*traiter en fonction*/;
+		else if (params[0] == "KICK")
+			/*traiter en fonction*/;
+		else if (params[0] == "INVITE")
+			/*traiter en fonction*/;
+		else if (params[0] == "TOPIC")
+			/*traiter en fonction*/;
+		else if (params[0] == "MODE")
+			/*traiter en fonction*/;
+		else
+			sendNumeric(clt, "421", params[0], "Unkown comand");
+	}
+	return ;
 }
