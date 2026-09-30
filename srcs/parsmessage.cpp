@@ -62,5 +62,3 @@ int dispatcher(std::string word)
 		return (0);
 	return (1);
 }
-
-/*integret la class client au fonction et finir le dispatcher et le parsing message*/
