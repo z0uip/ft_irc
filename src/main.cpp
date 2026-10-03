@@ -6,12 +6,12 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/16 09:21:48 by abensaid          #+#    #+#             */
-/*   Updated: 2026/09/29 21:01:54 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/03 23:21:05 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/client.hpp"
-#include "../inc/Server.hpp"
+#include "client.hpp"
+#include "Server.hpp"
 #include <iostream>
 #include <cstdlib>
 

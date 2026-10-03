@@ -6,12 +6,13 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/02 20:35:46 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/03 23:19:32 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Server.hpp"
-#include "../inc/client.hpp"
+#include "../headers/Server.hpp"
+#include "../headers/client.hpp"
+#include "../headers/parsmessage.hpp"
 #include <sys/socket.h>
 #include <stdexcept>
 #include <netinet/in.h>//sockadrr_in/htons
@@ -82,7 +83,15 @@ void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de l
 	{
 		std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);//it pointe vers le client correspondant au FD qui vient de recevoir des données avc recv
 		if (it != _clients.end())//si find() a trouver le client
+		{
 			it->second.add_byte(buf, res);//ajoute les données reçues au buffer d'entrée du client correspondant pour reconstituer une cmd complete
+			std::string line;
+			while (it->second.extract_line(line))//extrait jusqu'au \n
+			{
+				std::vector<std::string> params	= parsmessage(line);
+				dispatcher(it->second, params);
+			}
+		}
 		std::cout << "Client " << _pollFds[i].fd << " a envoyé " << res << " octets.\n";
 	}
 
@@ -99,13 +108,40 @@ void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de l
 		std::cerr << "Recv error" << "\n";
 }
 
+void Server::sendClientData(size_t &i)
+{
+	std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);
+	if (it != _clients.end())
+	{
+		std::string msg = it->second.getOutBuffer();//recup le texte a envoyer (bufferout)
+		ssize_t bytes_sent = send(_pollFds[i].fd, msg.c_str(), msg.size(), 0);//serveur envoie des donnees au client
+		if (bytes_sent > 0)
+			it->second.consumeOutPut(bytes_sent);//on nettoie les octets lus
+		else if (bytes_sent == -1)
+			std::cerr << "Send error\n";
+	}
+}
+
 void Server::run()
 {	//signal(signal a gerer, fonction a appeler)
 	signal(SIGINT, signalHandler);//SIGINT = signal envoyer au programme pr qu'il stop
 	signal(SIGQUIT, signalHandler);
+	
 	while (Server::Signal == false)
 	{
 		std::cout << "Waiting for connection" << "\n";//msg tmporaire pr debug
+		for (size_t i = 1; i < _pollFds.size(); i++)//i = 1 psk 0 = servfd
+		{
+			std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);
+			if (it != _clients.end())
+			{
+				if ((it->second.hasPendingOutput()) == true)///verifie si le serveur a des donnees à envoyer à ce client
+					_pollFds[i].events = POLLIN | POLLOUT;// pollout = socket pret a accepter une ecriture
+				else
+					_pollFds[i].events = POLLIN;
+			}
+		}
+
 		if (poll(&_pollFds[0], _pollFds.size(), -1) == -1)//1 = adresse de debut du vecteur, 2 la taille, 3le temps d'attente -1 = infini
 		{
 			if (Server::Signal == true)//verif de la cause de l'erreur de poll()
@@ -121,6 +157,10 @@ void Server::run()
 					acceptNewClient();
 				else
 					handleClientData(i);
+			}
+			if (_pollFds[i].revents & POLLOUT)
+			{
+				sendClientData(i);
 			}
 		}
 	}
