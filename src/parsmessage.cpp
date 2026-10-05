@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   parsmessage.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 17:38:33 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/05 23:41:47 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "client.hpp"
 #include "parsmessage.hpp"
+#include "commands.hpp"
 
 std::vector<std::string> parsmessage(std::string message)
 {
@@ -50,6 +51,7 @@ std::vector<std::string> parsmessage(std::string message)
 
 void dispatcher(Server &serv, client &clt, const std::vector<std::string> &params)
 {
+	(void)serv;//sinn erreur unused parameter enleve qd tu finis la fonction
 	if (!params.empty())
 	{
 		if (params[0] == "PASS")
@@ -64,12 +66,16 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 			/*traiter en foncion*/;
 		else if (params[0] == "QUIT")
 			/*traiter en fonction*/;
-		else if (!clt.is_saved())
+		else if (!clt.is_saved())// a mettre en commentaire si test a faire
 			sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")
 			/*traiter en fonction*/;
 		else if (params[0] == "JOIN")
-			/*traiter en fonction*/;
+		{
+			clt.modifie_nickname("Anistest");//en attendant NICK
+			clt.modifie_username("anis");//en attendant USER
+			handleJoin(serv, clt, params);
+		}
 		else if (params[0] == "KICK")
 			/*traiter en fonction*/;
 		else if (params[0] == "INVITE")

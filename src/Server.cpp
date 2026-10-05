@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 17:46:50 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/05 22:45:16 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de l
 			while (it->second.extract_line(line))//extrait jusqu'au \n
 			{
 				std::vector<std::string> params	= parsmessage(line);
-				dispatcher(it->second, params);
+				dispatcher(*this, it->second, params);//*this = l'objet Server
 			}
 		}
 		std::cout << "Client " << _pollFds[i].fd << " a envoyé " << res << " octets.\n";
@@ -174,3 +174,34 @@ const std::string &Server::getPassword() const
 {
 	return _pwd;
 }
+
+client *Server::getClientByNick(const std::string &nick)
+{
+	std::map<int, client>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (it->second.get_nickname() == nick)
+			return (&it->second);
+	}
+	return (NULL);
+}
+
+//Logique des channels
+Channel* Server::getChannel(const std::string &name)
+{
+	std::map<std::string, Channel>::iterator it = _channels.find(name);
+	if (it != _channels.end())
+	{
+		return &(it->second);//on return l'adresse memoire de l'objet Channel
+	}
+	return NULL;
+}
+
+Channel* Server::createChannel(const std::string &name)
+{
+	Channel tmp_channel(name);
+	_channels.insert(std::make_pair(name, tmp_channel));
+	return getChannel(name);
+}
+

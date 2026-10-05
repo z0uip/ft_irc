@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 17:36:52 by abensaid          #+#    #+#             */
-/*   Updated: 2026/09/30 17:26:06 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/05 19:41:25 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class client
 		std::string _username;
 		std::string _bufferin;
 		std::string _bufferout;
+		bool _has_leaved;
 	public :
 		bool is_saved() const;
 		bool is_pass_ok() const;
@@ -52,6 +53,10 @@ class client
 		void modifie_username(const std::string name);
 		void modifie_nickname(const std::string name);
 		void add_byte(const char *data, size_t len);
+		void set_pass_ok(bool info);
+		void set_saved(bool info);
+		std::string get_ip();
+		void set_has_leaved(bool b);
 };
 
 #endif

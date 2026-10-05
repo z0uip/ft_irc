@@ -1,24 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parsmessage.hpp                                    :+:      :+:    :+:   */
+/*   commands.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/09/30 17:26:40 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 19:25:48 by abensaid         ###   ########.fr       */
+/*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
+/*   Updated: 2026/10/05 23:18:32 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PARSMESSAGE_HPP
-#define PARSMESSAGE_HPP
+#pragma once
 
-#include "client.hpp"
-#include "Server.hpp"
+#include <vector>
+#include <string>
 
+class Server;
+class client;
 
-std::vector<std::string> parsmessage(std::string message);
-void dispatcher(Server &serv, client &clt, const std::vector<std::string> &params);
-void sendNumeric(class client &clt, const std::string &code, const std::string &params, const std::string &text);
-
-#endif
+void handlePass(Server &serv, client &clt, const std::vector<std::string> &params);
+void handleJoin(Server &serv, client &clt, const std::vector<std::string> &params);

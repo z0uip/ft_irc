@@ -6,13 +6,12 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:19 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/04 01:12:41 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/05 23:16:57 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "Server.hpp"
 #include "client.hpp"
 
 class Channel
@@ -46,4 +45,8 @@ class Channel
 
 		//diffuse un msg aux autres clients presents ds le salon
 		void broadcast(const std::string &msg, client *exclude);
+
+		bool isInviteOnly() const { return _inviteOnly; }
+		bool isTopicRestricted() const { return _topicRestricted; }
+		bool hasUserLimit() const { return _userLimit; }
 };

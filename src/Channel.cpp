@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:21 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/04 01:12:58 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/05 23:16:01 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,9 @@ Channel::Channel(const std::string &name) : _name(name), _topic(""), _password("
 _inviteOnly(false),
 _topicRestricted(true),	_userLimit(0)
 {
+	_inviteOnly = false;
+	_topicRestricted = false;
+	_userLimit = false;
 }
 
 Channel::~Channel()
@@ -96,9 +99,9 @@ void Channel::broadcast(const std::string &msg, client *exclude)
 {
 	for (size_t i = 0; i < _clients.size(); i++)
 	{
-		if (_clients[i] != exclude)
+		if (_clients[i] != exclude)//on exclue le client qui a envoyer le msg
 		{
-			_clients[i]->queueMessage(msg);
+			_clients[i]->queueMessage(msg);//on met le msg ds le buffer de sortie de chaque client
 		}
 	}
 }

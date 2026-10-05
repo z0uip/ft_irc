@@ -54,7 +54,7 @@ client::client(int fd, const std::string &ip)
 	_ip = ip;
 	_prfl_saved = false;
 }
-
+//ajt le msg au buffer de sortie du client
 void client::queueMessage(const std::string &msg)
 {
 	_bufferout.append(msg);
@@ -78,18 +78,6 @@ void client::consumeOutPut(int n)
 	if (n <= 0)
 		return ;
 	_bufferout.erase(0, n);
-}
-
-client *Server::getClientByNick(const std::string &nick)
-{
-	std::map<int, client>::iterator it;
-
-	for (it = _clients.begin(); it != _clients.end(); ++it)
-	{
-		if (it->second.get_nickname() == nick)
-			return (&it->second);
-	}
-	return (NULL);
 }
 
 void client::set_pass_ok(bool info)
