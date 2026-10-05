@@ -94,5 +94,11 @@ void Channel::removeOperator(client *clt)
 
 void Channel::broadcast(const std::string &msg, client *exclude)
 {
-	
+	for (size_t i = 0; i < _clients.size(); i++)
+	{
+		if (_clients[i] != exclude)
+		{
+			_clients[i]->queueMessage(msg);
+		}
+	}
 }

@@ -20,6 +20,7 @@
 #include <map>
 #include <csignal>
 #include "client.hpp"
+#include "Server.hpp"
 
 class Server
 {
@@ -29,6 +30,7 @@ class Server
 		int _servFd;
 		std::vector<struct pollfd> _pollFds;//pollfd plus ou moins une fiche pr un fd contenant le fd a surveiller l'events(POLLIN) et la reponse a levents
 		std::map<int, client> _clients;
+		// std::map<std::string, Channel> _channels;
 	public:
 		static bool Signal;//static pr avoir une seule variable commune
 		Server(long port, const std::string &pwd);
@@ -38,6 +40,7 @@ class Server
 		void handleClientData(size_t &i);
 		void sendClientData(size_t &i);
 		void run();//methode contenant boucle infini du serveur/multiplexeur
+		// Channel* getChannel(const std::string &name);
 		
 		
 };

@@ -14,6 +14,7 @@ bool client::is_saved() const
 {
 	return (_prfl_saved);
 }
+
 bool client::is_pass_ok() const
 {
 	return (_pass_ok);
