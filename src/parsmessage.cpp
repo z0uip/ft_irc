@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsmessage.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/03 23:19:34 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/05 17:38:33 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ std::vector<std::string> parsmessage(std::string message)
 }
 
 
-void dispatcher(client &clt, const std::vector<std::string> &params)
+void dispatcher(Server &serv, client &clt, const std::vector<std::string> &params)
 {
 	if (!params.empty())
 	{

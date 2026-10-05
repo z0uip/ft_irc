@@ -1,4 +1,5 @@
 #include "client.hpp"
+#include "Server.hpp"
 
 std::string client::get_username() const
 {
@@ -49,6 +50,7 @@ client::client(int fd, const std::string &ip)
 {
 	_fd = fd;
 	_pass_ok = false;
+	_has_leaved = false;
 	_ip = ip;
 	_prfl_saved = false;
 }
@@ -76,4 +78,36 @@ void client::consumeOutPut(int n)
 	if (n <= 0)
 		return ;
 	_bufferout.erase(0, n);
+}
+
+client *Server::getClientByNick(const std::string &nick)
+{
+	std::map<int, client>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (it->second.get_nickname() == nick)
+			return (&it->second);
+	}
+	return (NULL);
+}
+
+void client::set_pass_ok(bool info)
+{
+	_pass_ok = info;
+}
+
+void client::set_saved(bool info)
+{
+	_prfl_saved = info;
+}
+
+std::string client::get_ip()
+{
+	return _ip;
+}
+
+void client::set_has_leaved(bool b)
+{
+	_has_leaved = b;
 }
