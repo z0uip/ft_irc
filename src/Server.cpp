@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 22:45:16 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/06 21:27:51 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,4 +204,3 @@ Channel* Server::createChannel(const std::string &name)
 	_channels.insert(std::make_pair(name, tmp_channel));
 	return getChannel(name);
 }
-

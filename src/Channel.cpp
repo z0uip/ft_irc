@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:21 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 23:16:01 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/06 22:30:25 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,8 @@
 
 Channel::Channel(const std::string &name) : _name(name), _topic(""), _password(""),
 _inviteOnly(false),
-_topicRestricted(true),	_userLimit(0)
+_topicRestricted(true), _isLimitActive(false), _maxUsers(0)
 {
-	_inviteOnly = false;
-	_topicRestricted = false;
-	_userLimit = false;
 }
 
 Channel::~Channel()
@@ -104,4 +101,29 @@ void Channel::broadcast(const std::string &msg, client *exclude)
 			_clients[i]->queueMessage(msg);//on met le msg ds le buffer de sortie de chaque client
 		}
 	}
+}
+
+std::string Channel::getPassword() const
+{
+	return _password;
+}
+
+size_t Channel::getUserLimit() const
+{
+	return _maxUsers;
+}
+
+size_t Channel::getClientCount() const
+{
+	return _clients.size();
+}
+
+bool Channel::isInvited(const std::string &nickname) const
+{
+	for (size_t i = 0; i < _invitedUsers.size(); i++)
+	{
+		if (_invitedUsers[i] == nickname)
+			return true;
+	}
+	return false;
 }
