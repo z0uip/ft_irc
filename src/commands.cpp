@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   commands.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
+/*   Updated: 2026/10/08 01:16:30 by abensaid         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "client.hpp"
 #include "parsmessage.hpp"
 #include "commands.hpp"
@@ -25,7 +37,37 @@ std::vector<std::string> splitString(const std::string &str, char delimiter)
 
 bool checkChannelModes(Channel *chan, client &clt, const std::string &key)
 {
-	//faire Mode +k puis +l puis +i
+	//Mode +k
+	if (chan->getPassword() != "")
+	{
+		if (chan->getPassword() != key)
+		{
+			sendNumeric(clt, "475", chan->get_name(), "Cannot join channel (+k)");
+			return false;
+		}
+	}
+
+	//Mode +l
+	if (chan->hasUserLimit() == true)
+	{
+		if (chan->getClientCount() >= chan->getUserLimit())
+		{
+			sendNumeric(clt, "471", chan->get_name(), "Cannot join channel (+l)");
+			return false;
+		}
+	}
+
+	//Mode +i
+	if (chan->isInviteOnly() == true)
+	{
+		if (!chan->isInvited(clt.get_nickname()))
+		{
+			sendNumeric(clt, "473", chan->get_name(), "Cannot join channel (+i)");
+			return false;
+		}
+
+	}
+	return true;
 }
 
 void handleJoin(Server &serv, client &clt, const std::vector<std::string> &params)
@@ -63,12 +105,20 @@ void handleJoin(Server &serv, client &clt, const std::vector<std::string> &param
 		else
 		{
 			if (!checkChannelModes(chan, clt, key))
-				continue;
+				continue;//si le client est refuser d'un channel on passe au suivant
 			chan->addClient(&clt);
 		}
 
 		//Format IRC : :<nickname>!<username>@<ip> JOIN <nom_du_salon>
 		std::string joinMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" +clt.get_ip() + " JOIN " + chanName;
 		chan->broadcast(joinMsg, NULL);
+		if (chan->get_topic().empty())
+		{
+			sendNumeric(clt, "331", chanName, "No topic is set");
+		}
+		else
+			sendNumeric(clt, "332", chanName, chan->get_topic());
+		sendNumeric(clt, "353", "= " + chanName, chan->getClientList());
+		sendNumeric(clt, "366", chanName, "End of /NAMES list");
 	}
 }

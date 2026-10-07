@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:21 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/06 22:30:25 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 01:14:21 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,4 +126,20 @@ bool Channel::isInvited(const std::string &nickname) const
 			return true;
 	}
 	return false;
+}
+
+//obtenir la liste des clients presents ds le channel et mettre un @ dvnt les admins
+std::string Channel::getClientList() const
+{
+	std::string list = "";
+	for (size_t i = 0; i < _clients.size(); i++)
+	{
+		if (isOperator(_clients[i]))
+		{
+			list += "@" + _clients[i]->get_nickname() + " ";
+		}
+		else
+			list += _clients[i]->get_nickname() + " ";
+	}
+	return (list);
 }

@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/06 21:27:51 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 01:31:50 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,17 +61,23 @@ void Server::start()
 
 void Server::acceptNewClient()
 {
-	int clientFd = accept(_servFd, NULL, NULL);//sert a recup une connexion entrante et creer un nv socket pr la communication avec
+	struct sockaddr_in clientAddr;
+	socklen_t clientAddrSize = sizeof(clientAddr);
+	int clientFd = accept(_servFd, (struct sockaddr *)&clientAddr, &clientAddrSize);//sert a recup une connexion entrante et creer un nv socket pr la communication avec
 	if (clientFd == -1)
+	{
 		std::cerr << "Connexion error from accept()" << "\n";//pas de throw, on veut pas que le serveur entier plante si 1 prsn narrive pas a se co
-	_clients.insert(std::make_pair(clientFd, client(clientFd, "")));//insert cette pair ds std::map
+		return;
+	}
+	std::string clientIP = inet_ntoa(clientAddr.sin_addr);
+	_clients.insert(std::make_pair(clientFd, client(clientFd, clientIP)));//insert cette pair ds std::map
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 	struct pollfd clientpollfd;
 	clientpollfd.fd = clientFd;
 	clientpollfd.events = POLLIN;
 	clientpollfd.revents = 0;
 	_pollFds.push_back(clientpollfd);
-	std::cout << "New connexion : FD = " << clientFd << "\n";
+	std::cout << "New connexion : FD = " << clientFd << " from " << clientIP << "\n";
 }
 
 void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de la boucle for dans run()

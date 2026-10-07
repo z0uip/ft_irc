@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 23:41:47 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 01:32:13 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,8 +66,8 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 			/*traiter en foncion*/;
 		else if (params[0] == "QUIT")
 			/*traiter en fonction*/;
-		else if (!clt.is_saved())// a mettre en commentaire si test a faire
-			sendNumeric(clt, "451", "", "You have not registered");
+		//else if (!clt.is_saved())// a mettre en commentaire si test a faire
+		//	sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")
 			/*traiter en fonction*/;
 		else if (params[0] == "JOIN")
