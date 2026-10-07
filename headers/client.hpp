@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 17:36:52 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 19:41:25 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 00:39:01 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <cerrno>
 #include <sstream>
 #include <vector>
+
 
 class client
 {
@@ -58,5 +59,7 @@ class client
 		std::string get_ip();
 		void set_has_leaved(bool b);
 };
+
+void tryRegister(client &clt);
 
 #endif

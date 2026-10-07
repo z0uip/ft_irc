@@ -68,7 +68,7 @@ void handleNick(Server &serv, client &clt, const std::vector<std::string> &param
 		return ;
 	}
 	clt.modifie_nickname(params[1]);
-	/*faire un call a try register*/
+	tryRegister(clt);
 }
 
 bool is_valid_nick(const std::string &nick)
@@ -88,3 +88,45 @@ bool is_valid_nick(const std::string &nick)
 		return (false);
 	return (true);
 }
+
+void handleUser(client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 5)
+		sendNumeric(clt, "461", "USER", "Not enough parameters.");
+	else if (clt.is_saved())
+		sendNumeric(clt, "462", "", "You may not register.");
+	else
+	{
+		clt.modifie_username(params[1]);
+		tryRegister(clt);
+	}
+}
+
+/*fonction qui sert a la negociation des capacitees en mode est ce que y'a des options suplementaire sur le serveur*/
+void handleCap(client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+		sendNumeric(clt, "461", "CAP", "Not enough parameters");
+	else if (params[1] == "LS")
+		clt.queueMessage(":ircserv CAP * LS :");
+}
+
+void handlePing(client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", "PING", "Not enough parameters");
+		return ;
+	}
+	clt.queueMessage(":ircserv PONG ircserv :" + params[1]);
+}
+
+void handleQuit(client &clt)
+{
+	clt.set_has_leaved(true);
+}
+
+// void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
+// {
+
+// }

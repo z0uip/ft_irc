@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsmessage.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 23:41:47 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 01:22:40 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,17 +55,17 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 	if (!params.empty())
 	{
 		if (params[0] == "PASS")
-			/*envoyer vers fonction PASS*/;
+			handlePass(serv, clt, params);
 		else if (params[0] == "NICK")
-			/*traiter en fonction*/;
+			handleNick(serv, clt, params);
 		else if (params[0] == "USER")
-			/*traiter en fonction*/;
+			handleUser(clt, params);
 		else if (params[0] == "CAP")
-			/*traiter en fonction*/;
+			handleCap(clt, params);
 		else if (params[0] == "PING")
-			/*traiter en foncion*/;
+			handlePing(clt, params);
 		else if (params[0] == "QUIT")
-			/*traiter en fonction*/;
+			handleQuit(clt);
 		else if (!clt.is_saved())// a mettre en commentaire si test a faire
 			sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")

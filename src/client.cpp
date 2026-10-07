@@ -1,5 +1,6 @@
 #include "client.hpp"
 #include "Server.hpp"
+#include "parsmessage.hpp"
 
 std::string client::get_username() const
 {
@@ -98,4 +99,21 @@ std::string client::get_ip()
 void client::set_has_leaved(bool b)
 {
 	_has_leaved = b;
+}
+
+void tryRegister(client &clt)
+{
+	if (clt.is_saved() || clt.get_nickname().empty() || clt.get_username().empty())
+		return ;
+	else if (!clt.is_pass_ok())
+	{
+		sendNumeric(clt, "464", "", "Unvalid password.");
+		clt.set_has_leaved(true);
+	}
+	else
+	{
+		clt.set_saved(true);
+		sendNumeric(clt, "001", "", "Welcome to the ft_irc network " + clt.get_nickname() + "!"
+			+ clt.get_username() + "@" + clt.get_ip());
+	}
 }
