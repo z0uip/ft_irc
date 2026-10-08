@@ -1,0 +1,91 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsmessage.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
+/*   Updated: 2026/10/08 01:22:40 by fbenech          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "client.hpp"
+#include "parsmessage.hpp"
+#include "commands.hpp"
+
+std::vector<std::string> parsmessage(std::string message)
+{
+	std::vector<std::string> params;
+	bool addlast = false;
+	std::string word;
+	std::string last;
+	size_t pos = message.find(" :");
+
+	if (message.empty())
+		return (params);
+	if (pos != std::string::npos)
+	{
+		last = message.substr(pos + 2);
+		message = message.substr(0, pos);
+		addlast = true;
+	}
+	std::istringstream mess(message);
+	if (!(mess >> word))
+		return (params);
+	if (word[0] == ':')
+	{
+		if (!(mess >> word))
+			return (params);
+	}
+	for (size_t i = 0; i < word.size(); ++i)
+		word[i] = std::toupper(static_cast<unsigned char>(word[i]));
+	params.push_back(word);
+	while (mess >> word)
+		params.push_back(word);
+	if (addlast)
+		params.push_back(last);
+	return (params);
+}
+
+
+void dispatcher(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	(void)serv;//sinn erreur unused parameter enleve qd tu finis la fonction
+	if (!params.empty())
+	{
+		if (params[0] == "PASS")
+			handlePass(serv, clt, params);
+		else if (params[0] == "NICK")
+			handleNick(serv, clt, params);
+		else if (params[0] == "USER")
+			handleUser(clt, params);
+		else if (params[0] == "CAP")
+			handleCap(clt, params);
+		else if (params[0] == "PING")
+			handlePing(clt, params);
+		else if (params[0] == "QUIT")
+			handleQuit(clt);
+		else if (!clt.is_saved())// a mettre en commentaire si test a faire
+			sendNumeric(clt, "451", "", "You have not registered");
+		else if (params[0] == "PRIVMSG")
+			/*traiter en fonction*/;
+		else if (params[0] == "JOIN")
+		{
+			clt.modifie_nickname("Anistest");//en attendant NICK
+			clt.modifie_username("anis");//en attendant USER
+			handleJoin(serv, clt, params);
+		}
+		else if (params[0] == "KICK")
+			/*traiter en fonction*/;
+		else if (params[0] == "INVITE")
+			/*traiter en fonction*/;
+		else if (params[0] == "TOPIC")
+			/*traiter en fonction*/;
+		else if (params[0] == "MODE")
+			/*traiter en fonction*/;
+		else
+			sendNumeric(clt, "421", params[0], "Unkown comand");
+	}
+	return ;
+}

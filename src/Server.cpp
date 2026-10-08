@@ -3,21 +3,32 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/09/29 01:28:26 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 02:00:29 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Server.hpp"
-#include "../inc/client.hpp"
+#include "../headers/Server.hpp"
+#include "../headers/client.hpp"
+#include "../headers/parsmessage.hpp"
 #include <sys/socket.h>
 #include <stdexcept>
 #include <netinet/in.h>//sockadrr_in/htons
 #include <fcntl.h>//fcntl() file control
+#include <csignal>
 
-Server::Server(long port, const std::string &pwd) : _port(port), _pwd(pwd) {}
+bool Server::Signal = false;
+
+void signalHandler(int signum)
+{
+	(void)signum;
+	std::cout << "\nSignal received, server shut down..." << "\n";
+	Server::Signal = true;
+}
+
+Server::Server(long port, const std::string &pwd) : _pwd(pwd), _port(port) {}
 
 Server::~Server() {}
 
@@ -48,51 +59,149 @@ void Server::start()
 	_pollFds.push_back(servpollfd);//on l'envoie au fond de notre tableau de fd
 }
 
-void Server::run()
+void Server::acceptNewClient()
 {
-	while (true)
+	int clientFd = accept(_servFd, NULL, NULL);//sert a recup une connexion entrante et creer un nv socket pr la communication avec
+	if (clientFd == -1)
+		std::cerr << "Connexion error from accept()" << "\n";//pas de throw, on veut pas que le serveur entier plante si 1 prsn narrive pas a se co
+	_clients.insert(std::make_pair(clientFd, client(clientFd, "")));//insert cette pair ds std::map
+	fcntl(clientFd, F_SETFL, O_NONBLOCK);
+	struct pollfd clientpollfd;
+	clientpollfd.fd = clientFd;
+	clientpollfd.events = POLLIN;
+	clientpollfd.revents = 0;
+	_pollFds.push_back(clientpollfd);
+	std::cout << "New connexion : FD = " << clientFd << "\n";
+}
+
+void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de la boucle for dans run()
+{
+	char buf[1024];
+	ssize_t res = recv(_pollFds[i].fd, buf, sizeof(buf), 0);//lis les donnees dispo sur le socket _pollFds et les mets dans buf sans depasser sa limite
+
+	if (res > 0)
+	{
+		std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);//it pointe vers le client correspondant au FD qui vient de recevoir des données avc recv
+		if (it != _clients.end())//si find() a trouver le client
+		{
+			it->second.add_byte(buf, res);//ajoute les données reçues au buffer d'entrée du client correspondant pour reconstituer une cmd complete
+			std::string line;
+			while (it->second.extract_line(line))//extrait jusqu'au \n
+			{
+				std::vector<std::string> params	= parsmessage(line);
+				dispatcher(*this, it->second, params);//*this = l'objet Server
+			}
+		}
+		std::cout << "Client " << _pollFds[i].fd << " a envoyé " << res << " octets.\n";
+	}
+
+	else if (res == 0)//si le client a fermer sa connexion
+	{
+		std::cout << "Client " << _pollFds[i].fd << " déconnecté.\n";
+		close(_pollFds[i].fd);//ferme le socket associe au fd
+		_clients.erase(_pollFds[i].fd);
+		_pollFds.erase(_pollFds.begin() + i);//supp le fd du vecteur
+		i--;//on recule pr ne pas rater le client qui a etait decaler
+	}
+
+	else if (res == -1)
+		std::cerr << "Recv error" << "\n";
+}
+
+void Server::sendClientData(size_t &i)
+{
+	std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);
+	if (it != _clients.end())
+	{
+		std::string msg = it->second.getOutBuffer();//recup le texte a envoyer (bufferout)
+		ssize_t bytes_sent = send(_pollFds[i].fd, msg.c_str(), msg.size(), 0);//serveur envoie des donnees au client
+		if (bytes_sent > 0)
+			it->second.consumeOutPut(bytes_sent);//on nettoie les octets lus
+		else if (bytes_sent == -1)
+			std::cerr << "Send error\n";
+	}
+}
+
+void Server::run()
+{	//signal(signal a gerer, fonction a appeler)
+	signal(SIGINT, signalHandler);//SIGINT = signal envoyer au programme pr qu'il stop
+	signal(SIGQUIT, signalHandler);
+	
+	while (Server::Signal == false)
 	{
 		std::cout << "Waiting for connection" << "\n";//msg tmporaire pr debug
+		for (size_t i = 1; i < _pollFds.size(); i++)//i = 1 psk 0 = servfd
+		{
+			std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);
+			if (it != _clients.end())
+			{
+				if ((it->second.hasPendingOutput()) == true)///verifie si le serveur a des donnees à envoyer à ce client
+					_pollFds[i].events = POLLIN | POLLOUT;// pollout = socket pret a accepter une ecriture
+				else
+					_pollFds[i].events = POLLIN;
+			}
+		}
+
 		if (poll(&_pollFds[0], _pollFds.size(), -1) == -1)//1 = adresse de debut du vecteur, 2 la taille, 3le temps d'attente -1 = infini
+		{
+			if (Server::Signal == true)//verif de la cause de l'erreur de poll()
+				break;
 			throw std::runtime_error("Poll error\n");
+		}
+
 		for (size_t i = 0; i < _pollFds.size(); i++)//size_t psk size() renv un size_t
 		{
 			if (_pollFds[i].revents & POLLIN)//si on detecte des donnes a lire, & psk on peut avoir plusieurs events en mm temps
 			{
 				if (_pollFds[i].fd == _servFd)
-				{
-					int clientFd = accept(_servFd, NULL, NULL);//sert a recup une connexion entrante et creer un nv socket pr la communication avec
-					if (clientFd == -1)
-						std::cerr << "Connexion error from accept()" << "\n";//pas de throw, on veut pas que le serveur entier plante si 1 prsn narrive pas a se co
-					_clients.insert(std::make_pair(clientFd, client(clientFd, "", "")));//insert cette pair ds std::map
-					fcntl(clientFd, F_SETFL, O_NONBLOCK);
-					struct pollfd clientpollfd;
-					clientpollfd.fd = clientFd;
-					clientpollfd.events = POLLIN;
-					clientpollfd.revents = 0;
-					_pollFds.push_back(clientpollfd);
-					std::cout << "New connexion : " << clientFd << "\n";
-				}
+					acceptNewClient();
 				else
-				{
-					char buf[1024];
-					ssize_t res = recv(_pollFds[i].fd, buf, sizeof(buf), 0);//lis les donnees dispo sur le socket _pollFds et les mets dans buf sans depasser sa limite
-					if (res > 0)
-					{
-						std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);//it pointe vers le client correspondant au FD qui vient de recevoir des données avc recv
-						if (it != _clients.end())//si find() a trouver le client
-							it->second.add_byte(buf, res);//ajoute les données reçues au buffer d'entrée du client correspondant pour reconstituer une cmd complete
-					}
-					else if (res == 0)//si le client a fermer sa connexion
-					{
-						close(_pollFds[i].fd);
-						_pollFds.erase(_pollFds.begin() + i);//supp le fd du vecteur
-					}
-					else if (res == -1)
-						std::cerr << "Recv error" << "\n";
-					std::cout << "Msg from a client !" << "\n";
-				}
+					handleClientData(i);
+			}
+			if (_pollFds[i].revents & POLLOUT)
+			{
+				sendClientData(i);
 			}
 		}
 	}
+	for (size_t i = 0; i < _pollFds.size(); i++)
+	{
+		close(_pollFds[i].fd);
+	}
 }
+
+const std::string &Server::getPassword() const
+{
+	return _pwd;
+}
+
+client *Server::getClientByNick(const std::string &nick)
+{
+	std::map<int, client>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if (it->second.get_nickname() == nick)
+			return (&it->second);
+	}
+	return (NULL);
+}
+
+//Logique des channels
+Channel* Server::getChannel(const std::string &name)
+{
+	std::map<std::string, Channel>::iterator it = _channels.find(name);
+	if (it != _channels.end())
+	{
+		return &(it->second);//on return l'adresse memoire de l'objet Channel
+	}
+	return NULL;
+}
+
+Channel* Server::createChannel(const std::string &name)
+{
+	Channel tmp_channel(name);
+	_channels.insert(std::make_pair(name, tmp_channel));
+	return getChannel(name);
+}
+

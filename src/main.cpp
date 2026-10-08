@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/16 09:21:48 by abensaid          #+#    #+#             */
-/*   Updated: 2026/09/29 01:07:30 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 01:59:52 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/client.hpp"
-#include "../inc/Server.hpp"
+#include "client.hpp"
+#include "Server.hpp"
 #include <iostream>
 #include <cstdlib>
 
@@ -32,4 +32,5 @@ int	main(int ac, char **av)
 	std::string pwd = av[2];
 	Server serv(port, pwd);
 	serv.start();
+	serv.run();
 }
