@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:21:54 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/08 22:48:30 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,9 +77,9 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 		else if (params[0] == "KICK")
 			/*traiter en fonction*/;
 		else if (params[0] == "INVITE")
-			/*traiter en fonction*/;
+			handleInvite(serv, clt, params);
 		else if (params[0] == "TOPIC")
-			/*traiter en fonction*/;
+			handleTopic(serv, clt, params);
 		else if (params[0] == "MODE")
 			/*traiter en fonction*/;
 		else

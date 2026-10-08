@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:04:17 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/08 22:48:12 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,3 +31,5 @@ bool checkChannelModes(Channel *chan, client &clt, const std::string &key);
 void handlePass(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleJoin(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleNick(Server &serv, client &clt, const std::vector<std::string> &params);
+void handleTopic(Server &serv, client &clt, const std::vector<std::string> &params);
+void handleInvite(Server &serv, client &clt, const std::vector<std::string> &params);

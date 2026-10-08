@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:19 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 01:09:25 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 02:34:32 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,4 +58,7 @@ class Channel
 		bool hasUserLimit() const { return _isLimitActive; }
 
 		std::string getClientList() const;
+		//setter
+		void set_topic(const std::string &new_topic);
+		void addInvitedUser(const std::string &nickname);
 };

@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:21 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 01:14:21 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 02:58:03 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,4 +142,15 @@ std::string Channel::getClientList() const
 			list += _clients[i]->get_nickname() + " ";
 	}
 	return (list);
+}
+
+void Channel::set_topic(const std::string &new_topic)
+{
+	_topic = new_topic;
+}
+
+void Channel::addInvitedUser(const std::string &nickname)
+{
+	if (!isInvited(nickname))
+		_invitedUsers.push_back(nickname);
 }

@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:49:33 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/08 22:48:00 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,4 +228,84 @@ void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &pa
 	{
 		
 	}
+}
+void handleTopic(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+	std::string chanName = params[1];
+	Channel *chan = serv.getChannel(chanName);
+	if (chan == NULL)
+	{
+		sendNumeric(clt, "403", chanName, "No such channel");
+		return;
+	}
+	if (chan->isClientInChannel(&clt) == false)//si le client est co au serv mais n'a pas fait join sur le salon
+	{
+		sendNumeric(clt, "442", chanName, "You're not on that channel");
+		return;
+	}
+	if (params.size() == 2)
+	{
+		if (chan->get_topic().empty())
+		{
+			sendNumeric(clt, "331", chanName, "No topic is set");
+		}
+		else
+			sendNumeric(clt, "332", chanName, chan->get_topic());
+		return;
+	}
+	if (chan->isTopicRestricted() && !chan->isOperator(&clt))
+	{
+		sendNumeric(clt, "482", chanName, "You're not channel operator");
+		return;
+	}
+
+	chan->set_topic(params[2]);
+	std::string topicMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " TOPIC " + chanName + " :" + params[2];
+	chan->broadcast(topicMsg, NULL);
+}
+
+void handleInvite(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	//params[1] = cible, params 2 = salon
+	if (params.size() < 3)
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+	client *target = serv.getClientByNick(params[1]);
+	if (target == NULL)
+	{
+		sendNumeric(clt, "401", params[1], "No such nick/channel");
+		return;
+	}
+	Channel *chan = serv.getChannel(params[2]);
+	if (chan == NULL)
+	{
+		sendNumeric(clt, "403", params[2], "No such channel");
+		return;
+	}
+	if (!chan->isClientInChannel(&clt))
+	{
+		sendNumeric(clt, "442", params[2], "You're not on that channel");
+		return;
+	}
+	if (chan->isClientInChannel(target))
+	{
+		sendNumeric(clt, "443", params[1] + " " + params[2], "is already on channel");
+		return;
+	}
+	if (chan->isInviteOnly() && !chan->isOperator(&clt))
+	{
+		sendNumeric(clt, "482", params[2], "You're not channel operator");
+		return;
+	}
+
+	chan->addInvitedUser(params[1]);
+	sendNumeric(clt, "341", params[1] + " " + params[2], "");
+	target->queueMessage(":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " INVITE " + target->get_nickname() + " :" + params[2]);
 }
