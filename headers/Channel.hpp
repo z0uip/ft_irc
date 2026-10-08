@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:19 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/05 23:16:57 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 01:09:25 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,15 +23,21 @@ class Channel
 
 		bool _inviteOnly;//Mode +i sur invitation
 		bool _topicRestricted;//Mode +t seul l'admin du salon change le topic
-		bool _userLimit;//Mode +l nb max de user
+		bool _isLimitActive;// Mode + l
 
 		std::vector<client*> _clients;//liste des membres
 		std::vector<client*> _operators;//liste des admins du salon
+		
+		size_t _maxUsers;
+		std::vector<std::string> _invitedUsers;
 	public:
 		Channel(const std::string &name);
 		~Channel();
 		std::string get_name() const;
 		std::string get_topic() const;
+		std::string getPassword() const;
+		size_t getUserLimit() const;
+		size_t getClientCount() const;
 
 		//Gestion des clients
 		void addClient(client *clt);
@@ -46,7 +52,10 @@ class Channel
 		//diffuse un msg aux autres clients presents ds le salon
 		void broadcast(const std::string &msg, client *exclude);
 
+		bool isInvited(const std::string &nickname) const;
 		bool isInviteOnly() const { return _inviteOnly; }
 		bool isTopicRestricted() const { return _topicRestricted; }
-		bool hasUserLimit() const { return _userLimit; }
+		bool hasUserLimit() const { return _isLimitActive; }
+
+		std::string getClientList() const;
 };

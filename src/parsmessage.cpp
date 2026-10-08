@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 01:22:40 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/08 02:05:17 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,9 +65,9 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 		else if (params[0] == "PING")
 			handlePing(clt, params);
 		else if (params[0] == "QUIT")
-			handleQuit(clt);
-		else if (!clt.is_saved())// a mettre en commentaire si test a faire
-			sendNumeric(clt, "451", "", "You have not registered");
+			/*traiter en fonction*/;
+		//else if (!clt.is_saved())// a mettre en commentaire si test a faire
+		//	sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")
 			/*traiter en fonction*/;
 		else if (params[0] == "JOIN")
