@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:35:33 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 22:47:34 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,3 +27,5 @@ void handlePass(Server &serv, client &clt, const std::vector<std::string> &param
 void handleJoin(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleTopic(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleInvite(Server &serv, client &clt, const std::vector<std::string> &params);
+void handleKick(Server &serv, client &clt, const std::vector<std::string> &params);
+
