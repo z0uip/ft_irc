@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/06 21:56:12 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/08 02:35:33 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,3 +25,5 @@ bool checkChannelModes(Channel *chan, client &clt, const std::string &key);
 //cmds
 void handlePass(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleJoin(Server &serv, client &clt, const std::vector<std::string> &params);
+void handleTopic(Server &serv, client &clt, const std::vector<std::string> &params);
+void handleInvite(Server &serv, client &clt, const std::vector<std::string> &params);
