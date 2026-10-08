@@ -6,13 +6,14 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:04:29 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/08 02:49:33 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "client.hpp"
 #include "parsmessage.hpp"
 #include "commands.hpp"
+
 
 std::vector<std::string> splitString(const std::string &str, char delimiter)
 {
@@ -108,9 +109,34 @@ void handleJoin(Server &serv, client &clt, const std::vector<std::string> &param
 		else
 			key = "";
 
-	//Format IRC : :<nickname>!<username>@<ip> JOIN <nom_du_salon>
-	std::string joinMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" +clt.get_ip() + " JOIN " + chanName;
-	chan->broadcast(joinMsg, NULL);
+		std::cout << "[DEBUG] Tentative de JOIN sur : " << chanName << " (Clé: " << key << ")" << std::endl;
+		Channel *chan = serv.getChannel(chanName);
+
+		if (chan == NULL)
+		{
+			chan = serv.createChannel(chanName);
+			chan->addClient(&clt);
+			chan->addOperator(&clt);//premier arrive est membre et operateur
+		}
+		else
+		{
+			if (!checkChannelModes(chan, clt, key))
+				continue;//si le client est refuser d'un channel on passe au suivant
+			chan->addClient(&clt);
+		}
+
+		//Format IRC : :<nickname>!<username>@<ip> JOIN <nom_du_salon>
+		std::string joinMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" +clt.get_ip() + " JOIN " + chanName;
+		chan->broadcast(joinMsg, NULL);
+		if (chan->get_topic().empty())
+		{
+			sendNumeric(clt, "331", chanName, "No topic is set");
+		}
+		else
+			sendNumeric(clt, "332", chanName, chan->get_topic());
+		sendNumeric(clt, "353", "= " + chanName, chan->getClientList());
+		sendNumeric(clt, "366", chanName, "End of /NAMES list");
+	}
 }
 
 void handleNick(Server &serv, client &clt, const std::vector<std::string> &params)
@@ -190,36 +216,16 @@ void handleQuit(client &clt)
 	clt.set_has_leaved(true);
 }
 
-// void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
-// {
-
-// }
-		std::cout << "[DEBUG] Tentative de JOIN sur : " << chanName << " (Clé: " << key << ")" << std::endl;
-		Channel *chan = serv.getChannel(chanName);
-
-		if (chan == NULL)
-		{
-			chan = serv.createChannel(chanName);
-			chan->addClient(&clt);
-			chan->addOperator(&clt);//premier arrive est membre et operateur
-		}
-		else
-		{
-			if (!checkChannelModes(chan, clt, key))
-				continue;//si le client est refuser d'un channel on passe au suivant
-			chan->addClient(&clt);
-		}
-
-		//Format IRC : :<nickname>!<username>@<ip> JOIN <nom_du_salon>
-		std::string joinMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" +clt.get_ip() + " JOIN " + chanName;
-		chan->broadcast(joinMsg, NULL);
-		if (chan->get_topic().empty())
-		{
-			sendNumeric(clt, "331", chanName, "No topic is set");
-		}
-		else
-			sendNumeric(clt, "332", chanName, chan->get_topic());
-		sendNumeric(clt, "353", "= " + chanName, chan->getClientList());
-		sendNumeric(clt, "366", chanName, "End of /NAMES list");
+void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 3)
+		sendNumeric(clt, "461", "PRIVMSG", "Not enough parameters.");
+	else if (params[1].empty() || serv.getClientByNick(params[1]) == NULL)
+		sendNumeric(clt, "411", "", "No recipient given(PRIVMSG).");
+	else if (params[2].empty())
+		sendNumeric(clt, "412", "", "No text to send.");
+	else
+	{
+		
 	}
 }

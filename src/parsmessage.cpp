@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:05:17 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/08 02:21:54 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ std::vector<std::string> parsmessage(std::string message)
 	return (params);
 }
 
-
+/*probleme de sortie avec des commandes qui existe pas pas bon message*/
 void dispatcher(Server &serv, client &clt, const std::vector<std::string> &params)
 {
 	(void)serv;//sinn erreur unused parameter enleve qd tu finis la fonction
@@ -66,14 +66,12 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 			handlePing(clt, params);
 		else if (params[0] == "QUIT")
 			/*traiter en fonction*/;
-		//else if (!clt.is_saved())// a mettre en commentaire si test a faire
-		//	sendNumeric(clt, "451", "", "You have not registered");
+		else if (!clt.is_saved())// a mettre en commentaire si test a faire
+			sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")
 			/*traiter en fonction*/;
 		else if (params[0] == "JOIN")
 		{
-			clt.modifie_nickname("Anistest");//en attendant NICK
-			clt.modifie_username("anis");//en attendant USER
 			handleJoin(serv, clt, params);
 		}
 		else if (params[0] == "KICK")
