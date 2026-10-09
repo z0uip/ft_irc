@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:21 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:58:03 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 02:12:20 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,4 +153,28 @@ void Channel::addInvitedUser(const std::string &nickname)
 {
 	if (!isInvited(nickname))
 		_invitedUsers.push_back(nickname);
+}
+
+void Channel::setInviteOnly(bool status)
+{
+	_inviteOnly = status;
+}
+
+void Channel::setTopicRestricted(bool status)
+{
+	_topicRestricted = status;
+}
+
+void Channel::setPassword(const std::string &password)
+{
+	_password = password;
+}
+
+void Channel::setUserLimit(size_t limit)
+{
+	_maxUsers = limit;
+	if (limit > 0)
+		_isLimitActive = true;
+	else
+		_isLimitActive = false;
 }
