@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 02:22:44 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 02:27:21 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,13 @@ void handleJoin(Server &serv, client &clt, const std::vector<std::string> &param
 		else
 			key = "";
 
+		// AJOUT : nom vide ou sans '#' -> channel invalide
+		if (chanName.empty() || chanName[0] != '#')
+		{
+			sendNumeric(clt, "403", chanName, "No such channel");
+			continue;
+		}
+
 		std::cout << "[DEBUG] Tentative de JOIN sur : " << chanName << " (Clé: " << key << ")" << std::endl;
 		Channel *chan = serv.getChannel(chanName);
 
@@ -120,6 +127,9 @@ void handleJoin(Server &serv, client &clt, const std::vector<std::string> &param
 		}
 		else
 		{
+			// AJOUT : deja membre -> on ne refait rien
+			if (chan->isClientInChannel(&clt))
+				continue;
 			if (!checkChannelModes(chan, clt, key))
 				continue;//si le client est refuser d'un channel on passe au suivant
 			chan->addClient(&clt);
@@ -143,7 +153,7 @@ void handleNick(Server &serv, client &clt, const std::vector<std::string> &param
 {
 	if (params.size() < 2)
 	{
-		sendNumeric(clt, "431", "NICK", "Not enough paramters.");
+		sendNumeric(clt, "431", "", "Not enough paramters.");
 		return ;
 	}
 	if (!is_valid_nick(params[1]))
@@ -211,24 +221,46 @@ void handlePing(client &clt, const std::vector<std::string> &params)
 	clt.queueMessage(":ircserv PONG ircserv :" + params[1]);
 }
 
-void handleQuit(client &clt)
+void handleQuit(Server serv, client &clt)
 {
 	clt.set_has_leaved(true);
+	serv.
 }
 
-//void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
-//{
-//	if (params.size() < 3)
-//		sendNumeric(clt, "461", "PRIVMSG", "Not enough parameters.");
-//	else if (params[1].empty() || serv.getClientByNick(params[1]) == NULL)
-//		sendNumeric(clt, "411", "", "No recipient given(PRIVMSG).");
-//	else if (params[2].empty())
-//		sendNumeric(clt, "412", "", "No text to send.");
-//	else
-//	{
-		
-//	}
-//}
+void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2 || params[1].empty())
+		sendNumeric(clt, "411", "", "No recipient given(PRIVMSG).");
+	else if (params.size() < 3 || params[2].empty())
+		sendNumeric(clt, "412", "", "No text to send.");
+	else
+	{
+		std::string msg = ":" + clt.get_nickname() + "!" + clt.get_username()
+			+ "@" +clt.get_ip() + " PRIVMSG " + params[1] + " :" + params[2];
+		if (params[1][0] == '#')
+		{
+			Channel *chan = serv.getChannel(params[1]);
+			if (!chan)
+			{
+				sendNumeric(clt, "403", params[1], "No such channel.");
+				return ;
+			}
+			if (chan->isClientInChannel(&clt))
+				chan->broadcast(msg, &clt);
+			else
+				sendNumeric(clt, "404", params[1], "Cannot send to channel.");
+			return ;
+		}
+		else
+		{
+			client *target = serv.getClientByNick(params[1]);
+			if (!target)
+				sendNumeric(clt, "401", params[1], "No such nick.");
+			else
+				target->queueMessage(msg);
+		}
+	}
+}
 
 void handleTopic(Server &serv, client &clt, const std::vector<std::string> &params)
 {
