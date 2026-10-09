@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 04:10:27 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 04:14:13 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,8 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 			handleTopic(serv, clt, params);
 		else if (params[0] == "MODE")
 			handleMode(serv, clt, params);
+		else if(params[0] == "PART")
+			handlePart(serv, clt, params);
 		else
 			sendNumeric(clt, "421", params[0], "Unkown comand");
 	}

@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 04:09:39 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 04:13:53 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,9 +116,7 @@ void handleJoin(Server &serv, client &clt, const std::vector<std::string> &param
 			continue;
 		}
 
-		std::cout << "[DEBUG] Tentative de JOIN sur : " << chanName << " (Clé: " << key << ")" << std::endl;
 		Channel *chan = serv.getChannel(chanName);
-
 		if (chan == NULL)
 		{
 			chan = serv.createChannel(chanName);
@@ -458,7 +456,8 @@ void handleMode(Server &serv, client &clt, const std::vector<std::string> &param
 	}
 	if (!chan->isOperator(&clt))
 	{
-		sendNumeric(clt, "483", params[1], "You're not operator on that channel");
+		sendNumeric(clt, "482", params[1], "You're not operator on that channel");
+		return;
 	}
 	applyChannelModes(serv, clt, chan, params);
 }
@@ -557,4 +556,38 @@ void applyChannelModes(Server &serv, client &clt, Channel *chan, const std::vect
 
 	std::string modeMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " MODE " + params[1] + " " + appliedModes + appliedParams;
 	chan->broadcast(modeMsg, NULL);
+}
+
+void handlePart(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+	std::vector<std::string> channels = splitString(params[1], ',');
+	std::string reason = clt.get_nickname();
+	if (params.size() >= 3)
+		reason = params[2];
+
+	for (size_t i = 0; i < channels.size(); i++)
+	{
+		std::string chanName = channels[i];
+		Channel *chan = serv.getChannel(chanName);
+
+		if (chan == NULL)
+		{
+			sendNumeric(clt, "403", chanName, "No such channel");
+			continue;//on passe au salon suivant
+		}
+		if (!chan->isClientInChannel(&clt))
+		{
+			sendNumeric(clt, "442", chanName, "You're not on that channel");
+			continue;
+		}
+		std::string partMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " PART " + chanName + " :" + reason;
+		chan->broadcast(partMsg, NULL);
+		chan->removeOperator(&clt);
+		chan->removeClient(&clt);
+	}
 }
