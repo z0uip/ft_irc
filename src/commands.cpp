@@ -6,14 +6,14 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 02:31:07 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 02:31:43 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "client.hpp"
 #include "parsmessage.hpp"
 #include "commands.hpp"
-
+#include <cstdlib>
 
 std::vector<std::string> splitString(const std::string &str, char delimiter)
 {
@@ -341,4 +341,197 @@ void handleInvite(Server &serv, client &clt, const std::vector<std::string> &par
 	chan->addInvitedUser(params[1]);
 	sendNumeric(clt, "341", params[1] + " " + params[2], "");
 	target->queueMessage(":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " INVITE " + target->get_nickname() + " :" + params[2]);
+}
+
+void handleKick(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 3)
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+	Channel *chan = serv.getChannel(params[1]);
+	if (chan == NULL)
+	{
+		sendNumeric(clt, "403", params[1], "No such channel");
+		return;
+	}
+	if (!chan->isClientInChannel(&clt))
+	{
+		sendNumeric(clt, "442", params[1], "You're not on that channel");
+		return;
+	}
+	if (!chan->isOperator(&clt))
+	{
+		sendNumeric(clt, "482", params[1], "You're not channel operator");
+		return;
+	}
+	client *target = serv.getClientByNick(params[2]);
+	if (target == NULL || !chan->isClientInChannel(target))
+	{
+		sendNumeric(clt, "441", params[2] + " " + params[1], "They aren't on that channel");
+		return;
+	}
+	std::string reason;
+	if (params.size() >= 4)
+		reason = params[3];
+	else
+		reason = clt.get_nickname();
+	std::string kickMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " KICK " + params[1] + " " + target->get_nickname() + " :" + reason;
+	chan->broadcast(kickMsg, NULL);
+	chan->removeOperator(target);
+	chan->removeClient(target);
+}
+
+//qd un utilisateur fait MODE #nom_du_salon il doit voir les modes actifs sur celui-ci
+void displayChannelModes(client &clt, Channel *chan, const std::string &chanName)
+{
+	std::string modes = "+";//contient les modes actifs
+	std::string modeParams = "";//contient les params des modes si besoin
+	if (chan->isInviteOnly())
+	{
+		modes += "i";
+	}
+	if (chan->isTopicRestricted())
+	{
+		modes += "t";
+	}
+	if (chan->hasUserLimit())
+	{
+		modes += "l";
+		std::ostringstream ss;//pr convertir le nombre en str
+		ss << chan->getUserLimit();
+		modeParams += " " + ss.str();
+	}
+	if (!chan->getPassword().empty())
+	{
+		modes += "k";
+		modeParams += " " + chan->getPassword();
+	}
+	if (modes == "+")
+	{
+		modes = "";//supp le signe + si ya aucun mode
+	}
+	sendNumeric(clt, "324", chanName, modes + modeParams);
+}
+
+void handleMode(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+	Channel *chan = serv.getChannel(params[1]);
+	if (chan == NULL)
+	{
+		sendNumeric(clt, "403", params[1], "No such Channel");
+		return;
+	}
+	if (params.size() == 2)
+	{
+		displayChannelModes(clt, chan, params[1]);
+		return;
+	}
+	if (!chan->isOperator(&clt))
+	{
+		sendNumeric(clt, "483", params[1], "You're not operator on that channel");
+	}
+	applyChannelModes(serv, clt, chan, params);
+}
+
+void applyChannelModes(Server &serv, client &clt, Channel *chan, const std::vector<std::string> &params)
+{
+	std::string modeString = params[2];//contient les lettres et signes a parcourir
+	char sign = '+';//memorise si on active ou desactive les modes
+	size_t argIdx = 3;
+
+	std::string appliedModes = ""; 
+	std::string appliedParams = "";
+
+	for (size_t i = 0; i < modeString.size(); i++)
+	{
+		char c = modeString[i];
+
+		if (c == '+' || c == '-')
+		{
+			sign = c;
+			appliedModes += c;
+			continue;
+		}
+
+		if (c == 'i')
+		{
+			chan->setInviteOnly(sign == '+');
+			appliedModes += c;
+		}
+		else if (c == 't')
+		{
+			chan->setTopicRestricted(sign == '+');
+			appliedModes += c;
+		}
+		else if (c == 'k')
+		{
+			if (sign == '+')
+			{
+				if (argIdx < params.size())
+				{
+					chan->setPassword(params[argIdx]);
+					appliedModes += c;
+					appliedParams += " " + params[argIdx];
+					argIdx++;
+				}
+			}
+			else if (sign == '-')
+			{
+				chan->setPassword("");
+				appliedModes += c;
+			}
+		}
+		else if (c == 'l')
+		{
+			if (sign == '+')
+			{
+				if (argIdx < params.size())
+				{
+					int limit = std::atoi(params[argIdx].c_str());
+					if (limit > 0)
+					{
+						chan->setUserLimit(limit);
+						appliedModes += c;
+						appliedParams += " " + params[argIdx];
+					}
+					argIdx++;
+				}
+			}
+			else if (sign == '-')
+			{
+				chan->setUserLimit(0);
+				appliedModes += c;
+			}
+		}
+		else if (c == 'o')
+		{
+			if (argIdx < params.size())
+			{
+				client *target = serv.getClientByNick(params[argIdx]);
+				if (target != NULL && chan->isClientInChannel(target))
+				{
+					if (sign == '+')
+						chan->addOperator(target);
+					else
+						chan->removeOperator(target);
+					appliedModes += c;
+					appliedParams += " " + params[argIdx];
+				}
+				argIdx++;
+			}
+		}
+	}
+
+	if (appliedModes.empty() || appliedModes == "+" || appliedModes == "-")
+		return;
+
+	std::string modeMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " MODE " + params[1] + " " + appliedModes + appliedParams;
+	chan->broadcast(modeMsg, NULL);
 }

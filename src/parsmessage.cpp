@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsmessage.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 01:16:24 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 02:28:18 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,13 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 			handleJoin(serv, clt, params);
 		}
 		else if (params[0] == "KICK")
-			/*traiter en fonction*/;
+			handleKick(serv, clt, params);
 		else if (params[0] == "INVITE")
 			handleInvite(serv, clt, params);
 		else if (params[0] == "TOPIC")
 			handleTopic(serv, clt, params);
 		else if (params[0] == "MODE")
-			/*traiter en fonction*/;
+			handleMode(serv, clt, params);
 		else
 			sendNumeric(clt, "421", params[0], "Unkown comand");
 	}

@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/03 23:33:19 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:34:32 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 02:10:46 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,8 @@ class Channel
 		//setter
 		void set_topic(const std::string &new_topic);
 		void addInvitedUser(const std::string &nickname);
+		void setInviteOnly(bool status);
+		void setTopicRestricted(bool status);
+		void setPassword(const std::string &password);
+		void setUserLimit(size_t limit);
 };
