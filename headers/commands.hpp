@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 22:48:12 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 01:15:37 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,3 +33,4 @@ void handleJoin(Server &serv, client &clt, const std::vector<std::string> &param
 void handleNick(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleTopic(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleInvite(Server &serv, client &clt, const std::vector<std::string> &params);
+void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params);
