@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 01:28:51 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 02:31:07 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,10 +221,10 @@ void handlePing(client &clt, const std::vector<std::string> &params)
 	clt.queueMessage(":ircserv PONG ircserv :" + params[1]);
 }
 
-void handleQuit(Server serv, client &clt)
+void handleQuit(client &clt)
 {
 	clt.set_has_leaved(true);
-	serv.
+	// serv.
 }
 
 void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
