@@ -6,7 +6,7 @@
 /*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 02:27:52 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 02:50:07 by abensaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,3 +38,4 @@ void handleInvite(Server &serv, client &clt, const std::vector<std::string> &par
 void handleKick(Server &serv, client &clt, const std::vector<std::string> &params);
 void handleMode(Server &serv, client &clt, const std::vector<std::string> &params);
 void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params);
+void handlePart(Server &serv, client &clt, const std::vector<std::string> &params);
