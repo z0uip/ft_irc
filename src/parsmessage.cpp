@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsmessage.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 02:28:18 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 04:10:27 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 		else if (params[0] == "PING")
 			handlePing(clt, params);
 		else if (params[0] == "QUIT")
-			handleQuit(clt);
+			handleQuit(serv, clt, params);
 		else if (!clt.is_saved())// a mettre en commentaire si test a faire
 			sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")

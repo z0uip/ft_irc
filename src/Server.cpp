@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:04:55 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 03:55:02 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,4 +209,14 @@ Channel* Server::createChannel(const std::string &name)
 	Channel tmp_channel(name);
 	_channels.insert(std::make_pair(name, tmp_channel));
 	return getChannel(name);
+}
+
+std::map<std::string, Channel> Server::getChannelMap()
+{
+	return _channels;
+}
+
+void Server::removeChannel(const std::string &name)
+{
+	_channels.erase(name);
 }

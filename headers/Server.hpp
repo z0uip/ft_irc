@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:01:06 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/06 20:36:27 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 03:53:57 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,12 @@ class Server
 		//getters
 		const std::string &getPassword() const;
 		client *getClientByNick(const std::string &nick);
+		std::map<std::string, Channel> getChannelMap();
 
 		//gestion des channels
 		Channel* getChannel(const std::string &name);
 		Channel* createChannel(const std::string &name);//pr creer un channel qd getChannel renvoie NULL
 		
+		//delete channel
+		void removeChannel(const std::string &name);
 };

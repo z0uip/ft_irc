@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   commands.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abensaid <abensaid@student.42lehavre.fr>   +#+  +:+       +#+        */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/05 22:57:14 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 02:27:52 by abensaid         ###   ########.fr       */
+/*   Updated: 2026/10/09 04:10:18 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,15 +18,16 @@
 class Server;
 class client;
 
-void handleQuit(client &clt);
 bool is_valid_nick(const std::string &nick);
 void handleCap(client &clt, const std::vector<std::string> &params);
 void handlePing(client &clt, const std::vector<std::string> &params);
 void handleUser(client &clt, const std::vector<std::string> &params);
+
 //utils
 std::vector<std::string> splitString(const std::string &str, char delimiter);
 bool checkChannelModes(Channel *chan, client &clt, const std::string &key);
 void displayChannelModes(client &clt, Channel *chan, const std::string &chanName);
+void handleQuit(Server &serv, client &clt, const std::vector<std::string> &params);
 void applyChannelModes(Server &serv, client &clt, Channel *chan, const std::vector<std::string> &params);
 
 //cmds

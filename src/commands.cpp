@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 02:31:43 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/09 04:09:39 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,10 +221,33 @@ void handlePing(client &clt, const std::vector<std::string> &params)
 	clt.queueMessage(":ircserv PONG ircserv :" + params[1]);
 }
 
-void handleQuit(client &clt)
+void handleQuit(Server &serv, client &clt, const std::vector<std::string> &params)
 {
+	std::string reason;
+	if (params.size() > 1)
+		reason = params[1];
+	else
+		reason = "Client Quit";
+	std::string msg = ":" + clt.get_nickname() + "!" + clt.get_username()
+		+ "@" + clt.get_ip() + " QUIT :" + reason;
+	std::map<std::string, Channel> map = serv.getChannelMap();
+	std::map<std::string, Channel>::iterator it;
+	std::vector<std::string> toDelete;
+	for (it = map.begin(); it != map.end(); ++it)
+	{
+		Channel *chan = &it->second;
+		if (chan->isClientInChannel(&clt))
+		{
+			chan->removeClient(&clt);
+			chan->removeOperator(&clt);
+			chan->broadcast(msg, NULL);
+			if (chan->getClientCount() == 0)
+				toDelete.push_back(it->first);
+		}
+	}
+	for (size_t i = 0; i < toDelete.size(); i++)
+		serv.removeChannel(toDelete[i]);
 	clt.set_has_leaved(true);
-	// serv.
 }
 
 void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
