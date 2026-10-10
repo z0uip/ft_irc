@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 17:26:43 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 04:14:13 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/10 01:27:33 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,8 @@ std::vector<std::string> parsmessage(std::string message)
 	return (params);
 }
 
-/*probleme de sortie avec des commandes qui existe pas pas bon message*/
 void dispatcher(Server &serv, client &clt, const std::vector<std::string> &params)
 {
-	(void)serv;//sinn erreur unused parameter enleve qd tu finis la fonction
 	if (!params.empty())
 	{
 		if (params[0] == "PASS")
@@ -66,14 +64,12 @@ void dispatcher(Server &serv, client &clt, const std::vector<std::string> &param
 			handlePing(clt, params);
 		else if (params[0] == "QUIT")
 			handleQuit(serv, clt, params);
-		else if (!clt.is_saved())// a mettre en commentaire si test a faire
+		else if (!clt.is_saved())
 			sendNumeric(clt, "451", "", "You have not registered");
 		else if (params[0] == "PRIVMSG")
 			handlePrivmsg(serv, clt, params);
 		else if (params[0] == "JOIN")
-		{
 			handleJoin(serv, clt, params);
-		}
 		else if (params[0] == "KICK")
 			handleKick(serv, clt, params);
 		else if (params[0] == "INVITE")

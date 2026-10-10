@@ -1,0 +1,248 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   userCommands.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
+/*   Updated: 2026/10/10 01:20:52 by fbenech          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "client.hpp"
+#include "parsmessage.hpp"
+#include "commands.hpp"
+#include <cstdlib>
+
+void handlePass(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", "PASS", "Not enough parameters.");
+		return ;
+	}
+	else if (clt.is_saved())
+	{
+		sendNumeric(clt, "462", "", "You may not be register");
+		return ;
+	}
+	else if (serv.getPassword() != params[1])
+	{
+		sendNumeric(clt, "464", "", "Wrong password.");
+		return ;
+	}
+	else
+		clt.set_pass_ok(true);
+}
+
+void handleJoin(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2 || params[1].empty())
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+
+	//logique split si le client veut rejoindre plusieurs salon en mm temps
+	std::vector<std::string> channels = splitString(params[1], ',');
+	std::vector<std::string> keys;//si y'a des mdp
+	if (params.size() > 2)
+		keys = splitString(params[2], ',');
+
+	for (size_t i = 0; i < channels.size(); i++)
+	{
+		std::string chanName = channels[i];
+		std::string key;
+		if (i < keys.size())
+			key = keys[i];
+		else
+			key = "";
+
+		if (chanName.empty() || chanName[0] != '#')
+		{
+			sendNumeric(clt, "403", chanName, "No such channel");
+			continue;
+		}
+
+		Channel *chan = serv.getChannel(chanName);
+		if (chan == NULL)
+		{
+			chan = serv.createChannel(chanName);
+			chan->addClient(&clt);
+			chan->addOperator(&clt);//premier arrive est membre et operateur
+		}
+		else
+		{
+			if (chan->isClientInChannel(&clt))
+				continue;
+			if (!checkChannelModes(chan, clt, key))
+				continue;//si le client est refuser d'un channel on passe au suivant
+			chan->addClient(&clt);
+		}
+
+		//Format IRC : :<nickname>!<username>@<ip> JOIN <nom_du_salon>
+		std::string joinMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" +clt.get_ip() + " JOIN " + chanName;
+		chan->broadcast(joinMsg, NULL);
+		if (chan->get_topic().empty())
+		{
+			sendNumeric(clt, "331", chanName, "No topic is set");
+		}
+		else
+			sendNumeric(clt, "332", chanName, chan->get_topic());
+		sendNumeric(clt, "353", "= " + chanName, chan->getClientList());
+		sendNumeric(clt, "366", chanName, "End of /NAMES list");
+	}
+}
+
+void handleNick(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "431", "", "Not enough paramters.");
+		return ;
+	}
+	if (!is_valid_nick(params[1]))
+	{
+		sendNumeric(clt, "432", params[1], "Unvalid nickname.");
+		return ;
+	}
+	client *other = serv.getClientByNick(params[1]);
+	if (other != NULL && other != &clt)
+	{
+		sendNumeric(clt, "433", params[1], "Nickname is already in use");
+		return ;
+	}
+	clt.modifie_nickname(params[1]);
+	tryRegister(clt);
+}
+
+void handleUser(client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 5)
+		sendNumeric(clt, "461", "USER", "Not enough parameters.");
+	else if (clt.is_saved())
+		sendNumeric(clt, "462", "", "You may not register.");
+	else
+	{
+		clt.modifie_username(params[1]);
+		tryRegister(clt);
+	}
+}
+
+/*fonction qui sert a la negociation des capacitees en mode est ce que y'a des options suplementaire sur le serveur*/
+void handleCap(client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+		sendNumeric(clt, "461", "CAP", "Not enough parameters");
+	else if (params[1] == "LS")
+		clt.queueMessage(":ircserv CAP * LS :");
+}
+
+void handlePing(client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", "PING", "Not enough parameters");
+		return ;
+	}
+	clt.queueMessage(":ircserv PONG ircserv :" + params[1]);
+}
+
+void handleQuit(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	std::string reason;
+	if (params.size() > 1)
+		reason = params[1];
+	else
+		reason = "Client Quit";
+	std::string msg = ":" + clt.get_nickname() + "!" + clt.get_username()
+		+ "@" + clt.get_ip() + " QUIT :" + reason;
+	std::map<std::string, Channel> map = serv.getChannelMap();
+	std::map<std::string, Channel>::iterator it;
+	std::vector<std::string> toDelete;
+	for (it = map.begin(); it != map.end(); ++it)
+	{
+		Channel *chan = &it->second;
+		if (chan->isClientInChannel(&clt))
+		{
+			chan->removeClient(&clt);
+			chan->removeOperator(&clt);
+			chan->broadcast(msg, NULL);
+			if (chan->getClientCount() == 0)
+				toDelete.push_back(it->first);
+		}
+	}
+	for (size_t i = 0; i < toDelete.size(); i++)
+		serv.removeChannel(toDelete[i]);
+	clt.set_has_leaved(true);
+}
+
+void handlePrivmsg(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2 || params[1].empty())
+		sendNumeric(clt, "411", "", "No recipient given(PRIVMSG).");
+	else if (params.size() < 3 || params[2].empty())
+		sendNumeric(clt, "412", "", "No text to send.");
+	else
+	{
+		std::string msg = ":" + clt.get_nickname() + "!" + clt.get_username()
+			+ "@" +clt.get_ip() + " PRIVMSG " + params[1] + " :" + params[2];
+		if (params[1][0] == '#')
+		{
+			Channel *chan = serv.getChannel(params[1]);
+			if (!chan)
+			{
+				sendNumeric(clt, "403", params[1], "No such channel.");
+				return ;
+			}
+			if (chan->isClientInChannel(&clt))
+				chan->broadcast(msg, &clt);
+			else
+				sendNumeric(clt, "404", params[1], "Cannot send to channel.");
+			return ;
+		}
+		else
+		{
+			client *target = serv.getClientByNick(params[1]);
+			if (!target)
+				sendNumeric(clt, "401", params[1], "No such nick.");
+			else
+				target->queueMessage(msg);
+		}
+	}
+}
+
+void handlePart(Server &serv, client &clt, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		sendNumeric(clt, "461", params[0], "Not enough parameters");
+		return;
+	}
+	std::vector<std::string> channels = splitString(params[1], ',');
+	std::string reason = clt.get_nickname();
+	if (params.size() >= 3)
+		reason = params[2];
+
+	for (size_t i = 0; i < channels.size(); i++)
+	{
+		std::string chanName = channels[i];
+		Channel *chan = serv.getChannel(chanName);
+
+		if (chan == NULL)
+		{
+			sendNumeric(clt, "403", chanName, "No such channel");
+			continue;//on passe au salon suivant
+		}
+		if (!chan->isClientInChannel(&clt))
+		{
+			sendNumeric(clt, "442", chanName, "You're not on that channel");
+			continue;
+		}
+		std::string partMsg = ":" + clt.get_nickname() + "!" + clt.get_username() + "@" + clt.get_ip() + " PART " + chanName + " :" + reason;
+		chan->broadcast(partMsg, NULL);
+		chan->removeOperator(&clt);
+		chan->removeClient(&clt);
+	}
+}

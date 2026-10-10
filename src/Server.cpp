@@ -6,7 +6,7 @@
 /*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 04:14:26 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/10 01:11:38 by fbenech          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de l
 		close(_pollFds[i].fd);//ferme le socket associe au fd
 		_clients.erase(_pollFds[i].fd);
 		_pollFds.erase(_pollFds.begin() + i);//supp le fd du vecteur
-		i--;//on recule pr ne pas rater le client qui a etait decaler
+		i--;//on recule pr ne pas rater le client qui a etait decale
 	}
 
 	else if (res == -1)
