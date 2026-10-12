@@ -17,7 +17,7 @@ int	main(int ac, char **av)
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << "Erreur du Bot : " << e.what() << "\n";
+		std::cerr << "Bot error : " << e.what() << "\n";
 		return 1;
 	}
 	return 0;
