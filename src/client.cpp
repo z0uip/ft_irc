@@ -117,3 +117,8 @@ void tryRegister(client &clt)
 			+ clt.get_username() + "@" + clt.get_ip());
 	}
 }
+
+bool client::has_leaved() const
+{
+	return _has_leaved;
+}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   userCommands.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: felix <felix@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/08 00:26:33 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/10 01:20:52 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/12 04:30:37 by felix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,7 @@ void handleQuit(Server &serv, client &clt, const std::vector<std::string> &param
 		reason = "Client Quit";
 	std::string msg = ":" + clt.get_nickname() + "!" + clt.get_username()
 		+ "@" + clt.get_ip() + " QUIT :" + reason;
-	std::map<std::string, Channel> map = serv.getChannelMap();
+	std::map<std::string, Channel> &map = serv.getChannelMap();
 	std::map<std::string, Channel>::iterator it;
 	std::vector<std::string> toDelete;
 	for (it = map.begin(); it != map.end(); ++it)
@@ -244,5 +244,7 @@ void handlePart(Server &serv, client &clt, const std::vector<std::string> &param
 		chan->broadcast(partMsg, NULL);
 		chan->removeOperator(&clt);
 		chan->removeClient(&clt);
+		if (chan->getClientCount() == 0)
+			serv.removeChannel(chanName);
 	}
 }

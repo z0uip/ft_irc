@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: felix <felix@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:01:06 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/09 03:53:57 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/12 04:00:50 by felix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,13 @@ class Server
 		void handleClientData(size_t &i);
 		void sendClientData(size_t &i);
 		void run();//methode contenant boucle infini du serveur/multiplexeur
+
+		void disconnectClient(size_t &i, const std::string &reason);
 		
 		//getters
 		const std::string &getPassword() const;
 		client *getClientByNick(const std::string &nick);
-		std::map<std::string, Channel> getChannelMap();
+		std::map<std::string, Channel> &getChannelMap();
 
 		//gestion des channels
 		Channel* getChannel(const std::string &name);

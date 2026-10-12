@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: felix <felix@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/16 09:21:48 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 02:04:48 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/12 03:38:52 by felix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,15 @@ int	main(int ac, char **av)
 	}
 	std::string pwd = av[2];
 	Server serv(port, pwd);
-	serv.start();
-	serv.run();
+	try
+	{
+		serv.start();
+		serv.run();
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << e.what();
+		return (1);
+	}
+	return (0);
 }

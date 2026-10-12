@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: felix <felix@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 17:36:52 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/08 00:39:01 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/12 04:18:26 by felix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class client
 		bool _has_leaved;
 	public :
 		bool is_saved() const;
+		bool has_leaved() const;
 		bool is_pass_ok() const;
 		bool hasPendingOutput() const;
 		void consumeOutPut(int n);

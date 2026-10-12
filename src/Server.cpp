@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: felix <felix@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/21 21:28:36 by abensaid          #+#    #+#             */
-/*   Updated: 2026/10/10 01:11:38 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/12 04:19:58 by felix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,33 +85,33 @@ void Server::handleClientData(size_t &i)//&i parce qu'on veut modifier le i de l
 	char buf[1024];
 	ssize_t res = recv(_pollFds[i].fd, buf, sizeof(buf), 0);//lis les donnees dispo sur le socket _pollFds et les mets dans buf sans depasser sa limite
 
-	if (res > 0)
+	if (res <= 0)//0 = le client a fermer sa connexion, -1 = connexion coupee brutalement (ex : client tue)
 	{
-		std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);//it pointe vers le client correspondant au FD qui vient de recevoir des données avc recv
-		if (it != _clients.end())//si find() a trouver le client
-		{
-			it->second.add_byte(buf, res);//ajoute les données reçues au buffer d'entrée du client correspondant pour reconstituer une cmd complete
-			std::string line;
-			while (it->second.extract_line(line))//extrait jusqu'au \n
-			{
-				std::vector<std::string> params	= parsmessage(line);
-				dispatcher(*this, it->second, params);//*this = l'objet Server
-			}
-		}
-		std::cout << "Client " << _pollFds[i].fd << " a envoyé " << res << " octets.\n";
+		std::cout << "Client " << _pollFds[i].fd << " déconnecté.\n";//a faire AVANT disconnectClient, apres _pollFds[i] n'est plus ce client
+		disconnectClient(i, "Connection closed");//retire le client de ses channels, close le fd, erase de _clients et _pollFds, et fait le i--
+		return;
 	}
+	std::cout << "Client " << _pollFds[i].fd << " a envoyé " << res << " octets.\n";
 
-	else if (res == 0)//si le client a fermer sa connexion
+	std::map<int, client>::iterator it = _clients.find(_pollFds[i].fd);//it pointe vers le client correspondant au FD qui vient de recevoir des données avc recv
+	if (it == _clients.end())//si find() n'a pas trouve le client on s'arrete
+		return;
+	it->second.add_byte(buf, res);//ajoute les données reçues au buffer d'entrée du client correspondant pour reconstituer une cmd complete
+	std::string line;
+	//extrait les lignes completes une par une (jusqu'au \r\n)
+	//et s'arrete si une cmd a fait partir le client (QUIT ou mauvais mdp) : inutile de traiter la suite
+	while (!it->second.has_leaved() && it->second.extract_line(line))
 	{
-		std::cout << "Client " << _pollFds[i].fd << " déconnecté.\n";
-		close(_pollFds[i].fd);//ferme le socket associe au fd
-		_clients.erase(_pollFds[i].fd);
-		_pollFds.erase(_pollFds.begin() + i);//supp le fd du vecteur
-		i--;//on recule pr ne pas rater le client qui a etait decale
+		std::vector<std::string> params	= parsmessage(line);//decoupe la ligne en cmd + params
+		dispatcher(*this, it->second, params);//*this = l'objet Server
 	}
-
-	else if (res == -1)
-		std::cerr << "Recv error" << "\n";
+	if (it->second.has_leaved())//le client a fait QUIT ou a donne un mauvais mdp
+	{
+		//dernier envoi du buffer de sortie avant de fermer, sinon le client ne recoit jamais le 464 (mauvais mdp)
+		const std::string &out = it->second.getOutBuffer();
+		send(_pollFds[i].fd, out.c_str(), out.size(), 0);
+		disconnectClient(i, "Client Quit");//apres cet appel le client est detruit : on ne touche plus a it
+	}
 }
 
 void Server::sendClientData(size_t &i)
@@ -131,6 +131,7 @@ void Server::sendClientData(size_t &i)
 void Server::run()
 {	//signal(signal a gerer, fonction a appeler)
 	signal(SIGINT, signalHandler);//SIGINT = signal envoyer au programme pr qu'il stop
+	signal(SIGPIPE, SIG_IGN);
 	signal(SIGQUIT, signalHandler);
 	
 	while (Server::Signal == false)
@@ -211,7 +212,7 @@ Channel* Server::createChannel(const std::string &name)
 	return getChannel(name);
 }
 
-std::map<std::string, Channel> Server::getChannelMap()
+std::map<std::string, Channel> &Server::getChannelMap()
 {
 	return _channels;
 }
@@ -219,4 +220,34 @@ std::map<std::string, Channel> Server::getChannelMap()
 void Server::removeChannel(const std::string &name)
 {
 	_channels.erase(name);
+}
+
+void Server::disconnectClient(size_t &i, const std::string &reason)
+{
+	int fd = _pollFds[i].fd;
+	std::map<int, client>::iterator it = _clients.find(fd);
+	if (it != _clients.end())
+	{
+		client *clt = &it->second;
+		std::string msg = ":" + clt->get_nickname() + "!" + clt->get_username()
+			+ "@" + clt->get_ip() + " QUIT :" + reason;
+		std::vector<std::string> empty;
+		std::map<std::string, Channel>::iterator c;
+		for (c = _channels.begin(); c != _channels.end(); ++c)
+		{
+			if (!c->second.isClientInChannel(clt))
+				continue;
+			c->second.removeClient(clt);
+			c->second.removeOperator(clt);
+			c->second.broadcast(msg, NULL);
+			if (c->second.getClientCount() == 0)
+				empty.push_back(c->first);
+		}
+		for (size_t k = 0; k < empty.size(); k++)
+			_channels.erase(empty[k]);
+		_clients.erase(it);
+	}
+	close(fd);
+	_pollFds.erase(_pollFds.begin() + i);
+	i--;
 }

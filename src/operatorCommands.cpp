@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   operatorCommands.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fbenech <fbenech@student.42.fr>            +#+  +:+       +#+        */
+/*   By: felix <felix@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/10 00:59:56 by fbenech           #+#    #+#             */
-/*   Updated: 2026/10/10 01:18:59 by fbenech          ###   ########.fr       */
+/*   Updated: 2026/10/12 04:29:37 by felix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ void handleKick(Server &serv, client &clt, const std::vector<std::string> &param
 	chan->broadcast(kickMsg, NULL);
 	chan->removeOperator(target);
 	chan->removeClient(target);
+	if (chan->getClientCount() == 0)
+		serv.removeChannel(params[1]);
 }
 
 void handleMode(Server &serv, client &clt, const std::vector<std::string> &params)
